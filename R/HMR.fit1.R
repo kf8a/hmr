@@ -534,13 +534,11 @@
       }
     }
     dum <- lm(konc ~ poly(tid/h, 2));
-    QR.c <- as.numeric(dum$coef[1]);
-    QR.b <- as.numeric(dum$coef[2]);
-    QR.a <- as.numeric(dum$coef[3]);
-    QR.C0 <- a;
-    QR.f0 <- b;
-    QR.f0.se <- summary(dum)$coefficients[2,2];
-    QR.f0.p<- summary(dum)$coefficients[2,4];
+    results <- summary(dum);
+    QR.C0 <- as.numeric(results$coefficients[1,1]);
+    QR.f0 <- as.numeric(results$coefficients[2,1]);
+    QR.f0.se <- results$coefficients[2,2];
+    QR.f0.p<- results$coefficients[2,4];
     QR.fraktil <- qt(p=0.975, df=n-2);
     QR.f0.lo95 <- QR.f0-QR.fraktil*QR.f0.se;
     QR.f0.up95 <- QR.f0+QR.fraktil*QR.f0.se;
@@ -554,8 +552,9 @@
   }
 
 ### Output
-  list(serie=serie,f0=f0.est,f0.se=f0.se,f0.p=f0.p,f0.lo95=f0.lo95,f0.up95=f0.up95,
-      PHMR.ptid=PHMR.ptid,PHMR.pkonc=PHMR.pkonc, method=method,warning=advarsel,
+  list(series=serie,f0=f0.est,f0.se=f0.se,f0.p=f0.p,f0.lo95=f0.lo95,f0.up95=f0.up95,
+#      PHMR.ptid,PHMR.pkonc=PHMR.pkonc, 
+      method=method,warning=advarsel,
       LR.f0=LR.f0,LR.f0.se=LR.f0.se,LR.f0.p=LR.f0.p,LR.f0.lo95=LR.f0.lo95,LR.f0.up95=LR.f0.up95,
       LR.warning=LR.advarsel, QR.C0=QR.C0, QR.f0=QR.f0, QR.f0.se=QR.f0.se, QR.f0.p=QR.f0.p, 
       QR.f0.lo95=QR.f0.lo95, QR.f0.up95=QR.f0.up95, QR.warning=QR.advarsel)

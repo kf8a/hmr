@@ -154,14 +154,16 @@ HMR<-function(filename,series=NA,dec='.',sep=';',JPG=FALSE,PS=FALSE,PHMR=FALSE,n
         # Data frames til output
         if (LR.always)
         {
-          OUTPUT<-data.frame(Series='',f0=0,f0.se=0,f0.p=0,f0.lo95=0,f0.up95=0,Method='',Warning='',
-          LR.f0=0,LR.f0.se=0,LR.f0.p=0,LR.f0.lo95=0,LR.f0.up95=0,LR.Warning='',stringsAsFactors=FALSE)
-          colnames(OUTPUT)<-c("Series","f0","f0.se","f0.p","f0.lo95","f0.up95","Method","Warning",
-          "LR.f0","LR.f0.se","LR.f0.p","LR.f0.lo95","LR.f0.up95","LR.Warning")
-        } else
-        {
-          OUTPUT<-data.frame(Series='',f0=0,f0.se=0,f0.p=0,f0.lo95=0,f0.up95=0,Method='',Warning='',stringsAsFactors=FALSE)
-          colnames(OUTPUT)<-c("Series","f0","f0.se","f0.p","f0.lo95","f0.up95","Method","Warning")
+          OUTPUT<-data.frame(series='',f0=0,f0.se=0,f0.p=0,f0.lo95=0,f0.up95=0,method='',warning='',
+              LR.f0=0,LR.f0.se=0,LR.f0.p=0,LR.f0.lo95=0,LR.f0.up95=0,LR.warning='',
+              QR.C0=0,QR.f0=0,QR.f0.se=0,
+              QR.f0.p=0,QR.f0.lo95=0,QR.f0.up95=0,QR.warning='',stringsAsFactors=FALSE);
+            colnames(OUTPUT)<-c("series","f0","f0.se","f0.p","f0.lo95","f0.up95","method","warning",
+                "LR.f0","LR.f0.se","LR.f0.p","LR.f0.lo95","LR.f0.up95","LR.warning","QR.C0","QR.f0","QR.f0.se",
+                "QR.f0.p","QR.f0.lo95","QR.f0.up95","QR.warning" );
+        } else {
+          OUTPUT<-data.frame(Series='',f0=0,f0.se=0,f0.p=0,f0.lo95=0,f0.up95=0,Method='',Warning='',stringsAsFactors=FALSE);
+          colnames(OUTPUT)<-c("Series","f0","f0.se","f0.p","f0.lo95","f0.up95","Method","Warning");
         }
         if (PHMR) {PHMROUT<-data.frame(Series='',Time=0,HMR=0,stringsAsFactors=FALSE); colnames(PHMROUT)<-c("Series","Time","HMR")}
         STOP<-FALSE
@@ -174,22 +176,19 @@ HMR<-function(filename,series=NA,dec='.',sep=';',JPG=FALSE,PS=FALSE,PHMR=FALSE,n
                 ngrid=ngrid,LR.always=LR.always,FollowHMR=FollowHMR,JPG=JPG,PS=PS,PHMR=PHMR,npred=npred,xtxt=paste(xtxt),ytxt=paste(ytxt),
                 pcttxt=paste(' (',round(100*i/nserie,0),'%)',sep=''),MSE.zero=MSE.zero,
                 bracketing.tol=bracketing.tol,bracketing.maxiter=bracketing.maxiter);
-            if (LR.always)
-              OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,mysprintf(oHMR$f0),mysprintf(oHMR$f0.se),
-                    mysprintf(oHMR$f0.p),mysprintf(oHMR$f0.lo95),mysprintf(oHMR$f0.up95),oHMR$method,oHMR$warning,
-                    mysprintf(oHMR$LR.f0),mysprintf(oHMR$LR.f0.se),mysprintf(oHMR$LR.f0.p),mysprintf(oHMR$LR.f0.lo95),
-                    mysprintf(oHMR$LR.f0.up95),oHMR$LR.warning, mysprintf(oHMR$QR.C0), mysprintf(oHMR$QR.f0), mysprintf(oHMR$QR.f0.se),
-                    mysprintf(oHMR$QR.f0.p), mysprintf(oHMR$QR.f0.lo95), mysprintf(oHMR$QR.f0.up95), oHMR$QR.f0.warning))
-            else
+            if (LR.always){
+              OUTPUT<-rbind(OUTPUT, oHMR)
+            } else {
               OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,mysprintf(oHMR$f0),mysprintf(oHMR$f0.se),mysprintf(oHMR$f0.p),
                     mysprintf(oHMR$f0.lo95),mysprintf(oHMR$f0.up95),oHMR$method,oHMR$warning))
                 if (PHMR) 
                   if (oHMR$method=='HMR') 
                     for (p in 1:npred) 
                       PHMROUT<-rbind(PHMROUT,c(oHMR$serie,oHMR$PHMR.ptid[p],oHMR$PHMR.pkonc[p]))
-                        if (oHMR$warning=='Cancelled') {
-                          STOP<-TRUE
-                        }
+            }
+            if (oHMR$warning=='Cancelled') {
+              STOP<-TRUE
+            }
           } else { # Ingen dataanalyse
             if (LR.always)
               OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,NA,NA,NA,NA,NA,'None','Data error',NA,NA,NA,NA,NA,NA))
