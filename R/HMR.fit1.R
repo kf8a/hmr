@@ -1,14 +1,14 @@
 .HMR.fit1<-function(tid,konc,A,V,serie,ngrid,LR.always,FollowHMR,JPG,PS,PHMR,npred,xtxt,ytxt,pcttxt,MSE.zero,bracketing.tol,bracketing.maxiter)
 {
-### Stikprøvestørrelse
+  ### Stikprøvestørrelse
   n<-length(konc);
 
-### Kammerets effektive højde
+  ### Kammerets effektive højde
   h<-V/A;
 
-### HMR-analyse hvis "n>2"
+  ### HMR-analyse hvis "n>2"
   if (n>2) {
-### "xOK(x)" returnerer "TRUE", hvis "x" ikke indeholder "NA", "-Inf" eller "Inf"; ellers "FALSE".
+    # "xOK(x)" returnerer "TRUE", hvis "x" ikke indeholder "NA", "-Inf" eller "Inf"; ellers "FALSE".
     xOK<-function(x) {
       if (sum(is.na(x))>0) {
         OK<-FALSE
@@ -21,10 +21,11 @@
       }
       OK
     }
-### Min version af "lsfit", der afslører "collinearity", før det går galt.
-### My version of "lsfit" that reveals "collinearity" before it goes wrong. 
-# Benytter den "qr"-test, der benyttes som standard i R - f.eks. af "lsfit"
-# Using the "qr" test used by default in R - eg. of "lsfit"
+
+    ### Min version af "lsfit", der afslører "collinearity", før det går galt.
+    ### My version of "lsfit" that reveals "collinearity" before it goes wrong. 
+    # Benytter den "qr"-test, der benyttes som standard i R - f.eks. af "lsfit"
+    # Using the "qr" test used by default in R - eg. of "lsfit"
     mylsfit<-function(x,y) {
       a11<-length(x); a12<-sum(x); 
       a21<-a12; 
@@ -36,15 +37,18 @@
           b<-as.numeric(lsfit(x,y,inter=TRUE)$coef);
           code<-1
         } else {
-          b<-NA; code<-0
+          b<-NA; 
+          code<-0
         }
       } else {
-        b<-NA; code<-0
+        b<-NA; 
+        code<-0
       }
       list(coef=b,code=code)
     }
-### Tester, om MSE kan beregnes.
-### Tests if the MSE may be calculated
+
+      ### Tester, om MSE kan beregnes.
+      ### Tests if the MSE may be calculated
       testMSE<-function(logkappa) {
         kappa<-exp(logkappa);
         x<-exp(-kappa*tid)/(-kappa*h);
@@ -529,6 +533,22 @@
         LR.advarsel<-'None'
       }
     }
+    dum <- lm(konc ~ poly(tid/h, 2));
+    QR.c <- as.numeric(dum$coef[1]);
+    QR.b <- as.numeric(dum$coef[2]);
+    QR.a <- as.numeric(dum$coef[3]);
+    QR.C0 <- a;
+    QR.f0 <- b;
+    QR.f0.se <- summary(dum)$coefficients[2,2];
+    QR.f0.p<- summary(dum)$coefficients[2,4];
+    QR.fraktil <- qt(p=0.975, df=n-2);
+    QR.f0.lo95 <- QR.f0-QR.fraktil*QR.f0.se;
+    QR.f0.up95 <- QR.f0+QR.fraktil*QR.f0.se;
+    if (QR.C0<=0) {
+      QR.advarsel<-'C0<=0'
+    } else {
+      QR.advarsel<-'None'
+    }
   } else {
     LR.f0<-NA; LR.f0.se<-NA; LR.f0.p<-NA; LR.f0.lo95<-NA; LR.f0.up95<-NA; LR.advarsel<-NA
   }
@@ -537,5 +557,6 @@
   list(serie=serie,f0=f0.est,f0.se=f0.se,f0.p=f0.p,f0.lo95=f0.lo95,f0.up95=f0.up95,
       PHMR.ptid=PHMR.ptid,PHMR.pkonc=PHMR.pkonc, method=method,warning=advarsel,
       LR.f0=LR.f0,LR.f0.se=LR.f0.se,LR.f0.p=LR.f0.p,LR.f0.lo95=LR.f0.lo95,LR.f0.up95=LR.f0.up95,
-      LR.warning=LR.advarsel)
+      LR.warning=LR.advarsel, QR.C0=QR.C0, QR.f0=QR.f0, QR.f0.se=QR.f0.se, QR.f0.p=QR.f0.p, 
+      QR.f0.lo95=QR.f0.lo95, QR.f0.up95=QR.f0.up95, QR.warning=QR.advarsel)
 }

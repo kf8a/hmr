@@ -33,24 +33,30 @@ HMR<-function(filename,series=NA,dec='.',sep=';',JPG=FALSE,PS=FALSE,PHMR=FALSE,n
   ytxt<-'Chamber concentration'
 
   ## Funktion til tjek for "NA", "-Inf" eller "Inf" i talvektorer
-  xOK<-function(x) # Returnerer "TRUE", hvis "x" ikke indeholder "NA", "-Inf" eller "Inf"; ellers "FALSE"
-  {
-    OK<-TRUE
-    if (sum(is.na(x))>0) {OK<-FALSE} else {if (max(abs(x))==Inf) {OK<-FALSE}}
+  xOK<-function(x) { # Returnerer "TRUE", hvis "x" ikke indeholder "NA", "-Inf" eller "Inf"; ellers "FALSE"
+    OK<-TRUE;
+    # if (sum(is.na(x))>0) {OK<-FALSE} else {if (max(abs(x))==Inf) {OK<-FALSE}}
+    if (sum(is.na(x))>0) {
+      OK<-FALSE
+    } else {
+      if (max(abs(x))==Inf) {
+        OK<-FALSE
+      }
+    }
     OK
   }
-  
-  ## Min version af "sprintf"
-  mysprintf<-function(x)
-  {
-    if (!is.na(x))
-    {
-      d<-unlist(strsplit(x=sprintf("%.4E",x),split='.',fixed=TRUE))
+
+## Min version af "sprintf"
+  mysprintf<-function(x) {
+    if (!is.na(x)) {
+      d<-unlist(strsplit(x=sprintf("%.4E",x),split='.',fixed=TRUE));
       dum<-paste(d[1],d[2],sep=dec)
-    } else {dum<-'NA'}
+    } else {
+      dum<-'NA'
+    }
     dum
   }
-  
+
   ## Kontrollerer for fejl i input
   ##   1. "filename" skal være en tekststreng af længde én. Om den peger på en eksisterende fil, overlades til R.
   ##   2. "series" skal være en ikke-tom tekststreng eller "NA".
@@ -165,18 +171,26 @@ HMR<-function(filename,series=NA,dec='.',sep=';',JPG=FALSE,PS=FALSE,PHMR=FALSE,n
           # Dataanalyse
           {
             oHMR<-.HMR.fit1(tid=HMRdata[[i]]$tid,konc=HMRdata[[i]]$konc,A=HMRdata[[i]]$A,V=HMRdata[[i]]$V,serie=HMRdata[[i]]$serie,
-            ngrid=ngrid,LR.always=LR.always,FollowHMR=FollowHMR,JPG=JPG,PS=PS,PHMR=PHMR,npred=npred,xtxt=paste(xtxt),ytxt=paste(ytxt),
-            pcttxt=paste(' (',round(100*i/nserie,0),'%)',sep=''),MSE.zero=MSE.zero,bracketing.tol=bracketing.tol,bracketing.maxiter=bracketing.maxiter)
+                ngrid=ngrid,LR.always=LR.always,FollowHMR=FollowHMR,JPG=JPG,PS=PS,PHMR=PHMR,npred=npred,xtxt=paste(xtxt),ytxt=paste(ytxt),
+                pcttxt=paste(' (',round(100*i/nserie,0),'%)',sep=''),MSE.zero=MSE.zero,
+                bracketing.tol=bracketing.tol,bracketing.maxiter=bracketing.maxiter);
             if (LR.always)
-              OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,mysprintf(oHMR$f0),mysprintf(oHMR$f0.se),mysprintf(oHMR$f0.p),mysprintf(oHMR$f0.lo95),mysprintf(oHMR$f0.up95),oHMR$method,oHMR$warning,
-              mysprintf(oHMR$LR.f0),mysprintf(oHMR$LR.f0.se),mysprintf(oHMR$LR.f0.p),mysprintf(oHMR$LR.f0.lo95),mysprintf(oHMR$LR.f0.up95),oHMR$LR.warning))
+              OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,mysprintf(oHMR$f0),mysprintf(oHMR$f0.se),
+                    mysprintf(oHMR$f0.p),mysprintf(oHMR$f0.lo95),mysprintf(oHMR$f0.up95),oHMR$method,oHMR$warning,
+                    mysprintf(oHMR$LR.f0),mysprintf(oHMR$LR.f0.se),mysprintf(oHMR$LR.f0.p),mysprintf(oHMR$LR.f0.lo95),
+                    mysprintf(oHMR$LR.f0.up95),oHMR$LR.warning, mysprintf(oHMR$QR.C0), mysprintf(oHMR$QR.f0), mysprintf(oHMR$QR.f0.se),
+                    mysprintf(oHMR$QR.f0.p), mysprintf(oHMR$QR.f0.lo95), mysprintf(oHMR$QR.f0.up95), oHMR$QR.f0.warning))
             else
-              OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,mysprintf(oHMR$f0),mysprintf(oHMR$f0.se),mysprintf(oHMR$f0.p),mysprintf(oHMR$f0.lo95),mysprintf(oHMR$f0.up95),oHMR$method,oHMR$warning))
-            if (PHMR) if (oHMR$method=='HMR') for (p in 1:npred) PHMROUT<-rbind(PHMROUT,c(oHMR$serie,oHMR$PHMR.ptid[p],oHMR$PHMR.pkonc[p]))
-            if (oHMR$warning=='Cancelled') {STOP<-TRUE}
-          } else
-          # Ingen dataanalyse
-          {
+              OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,mysprintf(oHMR$f0),mysprintf(oHMR$f0.se),mysprintf(oHMR$f0.p),
+                    mysprintf(oHMR$f0.lo95),mysprintf(oHMR$f0.up95),oHMR$method,oHMR$warning))
+                if (PHMR) 
+                  if (oHMR$method=='HMR') 
+                    for (p in 1:npred) 
+                      PHMROUT<-rbind(PHMROUT,c(oHMR$serie,oHMR$PHMR.ptid[p],oHMR$PHMR.pkonc[p]))
+                        if (oHMR$warning=='Cancelled') {
+                          STOP<-TRUE
+                        }
+          } else { # Ingen dataanalyse
             if (LR.always)
               OUTPUT<-rbind(OUTPUT,c(HMRdata[[i]]$serie,NA,NA,NA,NA,NA,'None','Data error',NA,NA,NA,NA,NA,NA))
             else
@@ -190,20 +204,22 @@ HMR<-function(filename,series=NA,dec='.',sep=';',JPG=FALSE,PS=FALSE,PHMR=FALSE,n
   }
   
   ## Output
-  if (FATAL) {Comment} else
-  {
-#     oldOutDec<-getOption("OutDec"); options(OutDec=dec)
-#     OUTPUT<-OUTPUT[-1,]
-#     rownames(OUTPUT)<-paste(1:dim(OUTPUT)[1],sep='')
-#     write.table(x=OUTPUT,file=paste('HMR-',filename,sep=''),append=FALSE,quote=FALSE,dec=dec,sep=sep,
-# row.names=FALSE,col.names=TRUE)
-#     if (PHMR) if (dim(PHMROUT)[1]>1)
-#     {
-#       PHMROUT<-PHMROUT[-1,]
-#       rownames(PHMROUT)<-paste(1:dim(PHMROUT)[1],sep='')
-#       write.table(x=PHMROUT,file=paste('PHMR - ',filename,sep=''),append=FALSE,quote=FALSE,dec=dec,sep=sep,row.names=FALSE,col.names=TRUE)
-#     }
-#     options(OutDec=oldOutDec)
-    OUTPUT
+  if (FATAL) {
+    Comment
+  } else {
+    oldOutDec<-getOption("OutDec"); 
+    options(OutDec=dec);
+    OUTPUT<-OUTPUT[-1,];
+    rownames(OUTPUT)<-paste(1:dim(OUTPUT)[1],sep='');
+    write.table(x=OUTPUT,file=paste('HMR-',filename,sep=''),append=FALSE,quote=FALSE,dec=dec,sep=sep,
+        row.names=FALSE,col.names=TRUE);
+    if (PHMR)
+      if (dim(PHMROUT)[1]>1) {
+        PHMROUT<-PHMROUT[-1,]
+          rownames(PHMROUT)<-paste(1:dim(PHMROUT)[1],sep='')
+          write.table(x=PHMROUT,file=paste('PHMR - ',filename,sep=''),append=FALSE,quote=FALSE,dec=dec,sep=sep,row.names=FALSE,col.names=TRUE)
+      }
+    options(OutDec=oldOutDec);
+    OUTPUT;
   }
 }
