@@ -174,6 +174,7 @@
       }
       ramme<-indramme();
 # Ekstra test hvis "ramme$code=1" - findes der valide HM-modeller?
+# Additional tests if "frame$code = 1" - there are valid HM models?
       if (ramme$code>0) {
         logkappa<-seq(log(ramme$kappa.lo),log(ramme$kappa.up),l=ngrid);
         vMSE<-rep(NA,ngrid); vcol<-rep(NA,ngrid)
@@ -269,6 +270,7 @@
       }
     }
 # Test for linearitet og manglende fit
+# Test for lack of linearity and fit
     maintext<-'HMR'; # Det er kontrolleret ovenfor, at "logkappa.opt" svarer til valid HM-model
       if (((vMSE[vcol==3][1]-MSE.big)<=MSE.zero)&((vMSE[vcol==3][length(vMSE[vcol==3])]-MSE.big)>MSE.zero)) {
         EST<-as.numeric(lsfit(tid,konc)$coef);
@@ -533,10 +535,11 @@
         LR.advarsel<-'None'
       }
     }
-    dum <- lm(konc ~ poly(tid/h, 2));
+    tidh <- tid/h
+    dum <- lm(konc ~ tidh + I(tidh^2));
     results <- summary(dum);
-    QR.C0 <- as.numeric(results$coefficients[1,1]);
-    QR.f0 <- as.numeric(results$coefficients[2,1]);
+    QR.C0 <- as.numeric(dum$coef[1]);
+    QR.f0 <- as.numeric(dum$coef[2]);
     QR.f0.se <- results$coefficients[2,2];
     QR.f0.p<- results$coefficients[2,4];
     QR.fraktil <- qt(p=0.975, df=n-2);
@@ -552,8 +555,8 @@
   }
 
 ### Output
-  list(series=serie,f0=f0.est,f0.se=f0.se,f0.p=f0.p,f0.lo95=f0.lo95,f0.up95=f0.up95,
-#      PHMR.ptid,PHMR.pkonc=PHMR.pkonc, 
+  data.frame(series=serie,f0=f0.est,f0.se=f0.se,f0.p=f0.p,f0.lo95=f0.lo95,f0.up95=f0.up95,
+      PHMR.ptidPHMR.ptid,PHMR.pkonc=PHMR.pkonc, 
       method=method,warning=advarsel,
       LR.f0=LR.f0,LR.f0.se=LR.f0.se,LR.f0.p=LR.f0.p,LR.f0.lo95=LR.f0.lo95,LR.f0.up95=LR.f0.up95,
       LR.warning=LR.advarsel, QR.C0=QR.C0, QR.f0=QR.f0, QR.f0.se=QR.f0.se, QR.f0.p=QR.f0.p, 
