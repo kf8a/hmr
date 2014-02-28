@@ -9,6 +9,7 @@
   ### HMR-analyse hvis "n>2"
   if (n>2) {
     # "xOK(x)" returnerer "TRUE", hvis "x" ikke indeholder "NA", "-Inf" eller "Inf"; ellers "FALSE".
+    # return true if x does not have any NA's or Inf values
     xOK<-function(x) {
       if (sum(is.na(x))>0) {
         OK<-FALSE
@@ -27,7 +28,8 @@
     # Benytter den "qr"-test, der benyttes som standard i R - f.eks. af "lsfit"
     # Using the "qr" test used by default in R - eg. of "lsfit"
     mylsfit<-function(x,y) {
-      a11<-length(x); a12<-sum(x); 
+      a11<-length(x); 
+      a12<-sum(x); 
       a21<-a12; 
       a22<-sum(x*x);
       if (xOK(c(a11,a12,a21,a22))) {
@@ -47,30 +49,31 @@
       list(coef=b,code=code)
     }
 
-      ### Tester, om MSE kan beregnes.
-      ### Tests if the MSE may be calculated
-      testMSE<-function(logkappa) {
-        kappa<-exp(logkappa);
-        x<-exp(-kappa*tid)/(-kappa*h);
-        if (!xOK(x)) {
-          ud<--1
-        } else {
-          dum<-mylsfit(x,konc);
-          if (dum$code>0) {
-            phi<-dum$coef[1];
-            f0<-dum$coef[2];
-            pkonc<-phi+f0*x;
-            if (!xOK(mean((konc-pkonc)^2))) {
-              ud<--1
-            } else {
-              ud<-1
-            }
-          } else {
+    ### Tester, om MSE kan beregnes.
+    ### Tests if the MSE may be calculated
+    testMSE<-function(logkappa) {
+      kappa<-exp(logkappa);
+      x<-exp(-kappa*tid)/(-kappa*h);
+      if (!xOK(x)) {
+        ud<--1
+      } else {
+        dum<-mylsfit(x,konc);
+        if (dum$code>0) {
+          phi<-dum$coef[1];
+          f0<-dum$coef[2];
+          pkonc<-phi+f0*x;
+          if (!xOK(mean((konc-pkonc)^2))) {
             ud<--1
+          } else {
+            ud<-1
           }
+        } else {
+          ud<--1
         }
-        (ud>0)
       }
+      (ud>0)
+    }
+
 ### MSE uden sikkerhedsnet
 ### MSE without a safety net
       MSE<-function(logkappa) {
@@ -463,11 +466,6 @@
         kappa<-exp(logkappa.opt);
         x<-exp(-kappa*tid)/(-kappa*h);
         dum<-lsfit(x,konc);
-        if (n>3) {
-          f0.se<-as.numeric(ls.diag(dum)$std.err)[2]
-        } else {
-          f0.se<-NA
-        }
         phi<-as.numeric(dum$coef)[1];
         f0.est<-as.numeric(dum$coef)[2];
         if (PHMR) {
@@ -475,6 +473,7 @@
           PHMR.pkonc<-phi+f0.est*(exp(-kappa*PHMR.ptid)/(-kappa*h))
         }
         if (n>3) {
+          f0.se<-as.numeric(ls.diag(dum)$std.err)[2]
           f0.p<-2*pt(q=-abs(f0.est/f0.se),df=n-2);
           fraktil<-qt(p=0.975,df=n-2);
           f0.lo95<-f0.est-fraktil*f0.se;
@@ -482,6 +481,7 @@
           method<-'HMR';
           advarsel<-'None';
         } else {
+          f0.se<-NA
           f0.p<-NA; 
           f0.lo95<-NA; 
           f0.up95<-NA;
@@ -535,6 +535,7 @@
         LR.advarsel<-'None'
       }
     }
+#compute the quadratic fit for good measure
     tidh <- tid/h
     dum <- lm(konc ~ tidh + I(tidh^2));
     results <- summary(dum);
